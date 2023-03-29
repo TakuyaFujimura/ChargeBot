@@ -5,9 +5,8 @@ import os
 import subprocess
 
 import pandas as pd
-from slack_sdk import WebhookClient  # WebClient
+from slack_sdk import WebhookClient
 
-# SLACK_TOKEN_FURO = os.environ["SLACK_TOKEN_FURO"]
 SLACK_WEBHOOK_URL_FURO = os.environ["SLACK_WEBHOOK_URL_FURO"]
 BALANCE_LOG_PATH = "data/balance_log.csv"
 USERWISE_DIR = "data/userwise"
@@ -29,8 +28,6 @@ def update_balance_log(balance, today, n_latest=8):
 
 
 def update_userwise_log(charge_info, today):
-    user_list = []
-    point_list = []
     user_point_dict = {"User": [], "Point": []}
     for i in range(5, len(charge_info) - 1):
         name, point = get_name_point(charge_info[i])
@@ -56,15 +53,6 @@ if __name__ == "__main__":
     balance = get_name_point(charge_info[2])[-1]
     # Alert by Slack
     if balance < args.balance:
-        """
-        # DM
-        client = WebClient(SLACK_TOKEN_FURO)
-        res = client.conversations_open(users="<user id>")
-        dm_id = res["channel"]["id"]
-        client.chat_postMessage(
-            channel=dm_id, text=f"There are few points left.\nBalance: {balance}"
-        )
-        """
         # channel
         client = WebhookClient(SLACK_WEBHOOK_URL_FURO)
         message = "<!channel>\n"

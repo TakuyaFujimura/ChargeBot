@@ -5,9 +5,10 @@ import os
 import subprocess
 
 import pandas as pd
-from slack_sdk import WebClient
+from slack_sdk import WebhookClient  # WebClient
 
-SLACK_TOKEN_FURO = os.environ["SLACK_TOKEN_FURO"]
+# SLACK_TOKEN_FURO = os.environ["SLACK_TOKEN_FURO"]
+SLACK_WEBHOOK_URL_FURO = os.environ["SLACK_WEBHOOK_URL_FURO"]
 BALANCE_LOG_PATH = "data/balance_log.csv"
 USERWISE_DIR = "data/userwise"
 
@@ -23,7 +24,6 @@ def update_balance_log(balance, today, n_latest=8):
         "Date": today,
         "Balance": balance,
     }
-    breakpoint()
     new_df = pd.concat([df, pd.DataFrame([new_row])])
     new_df.to_csv(BALANCE_LOG_PATH, index=False)
 
@@ -56,11 +56,21 @@ if __name__ == "__main__":
     balance = get_name_point(charge_info[2])[-1]
     # Alert by Slack
     if balance < args.balance:
+        """
+        # DM
         client = WebClient(SLACK_TOKEN_FURO)
-        res = client.conversations_open(users="U038N91UQ2K")
+        res = client.conversations_open(users="<user id>")
         dm_id = res["channel"]["id"]
         client.chat_postMessage(
             channel=dm_id, text=f"There are few points left.\nBalance: {balance}"
         )
+        """
+        # channel
+        client = WebhookClient(SLACK_WEBHOOK_URL_FURO)
+        message = "<!channel>\n"
+        message += ":warning: *There are few points left.*\n"
+        message += f"Balance: {balance:18} p"
+        response = client.send(text=message)
+
     update_balance_log(balance, today)
     update_userwise_log(charge_info, today)

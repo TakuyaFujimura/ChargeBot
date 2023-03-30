@@ -1,8 +1,8 @@
 import argparse
-import csv
 import datetime
 import os
 import subprocess
+from pathlib import Path
 
 import pandas as pd
 from slack_sdk import WebhookClient
@@ -16,7 +16,7 @@ def get_name_point(text):
     return [text.split()[0], int(text.split()[-2].replace(",", ""))]
 
 
-def update_balance_log(balance, today, n_latest=8):
+def update_balance_log(balance, today, n_latest=365):
     df = pd.read_csv(BALANCE_LOG_PATH)
     df = df.iloc[-(n_latest - 1) :]
     new_row = {
@@ -27,13 +27,15 @@ def update_balance_log(balance, today, n_latest=8):
     new_df.to_csv(BALANCE_LOG_PATH, index=False)
 
 
-def update_userwise_log(charge_info, today):
+def update_userwise_log(charge_info, today, n_latest=31):
     user_point_dict = {"User": [], "Point": []}
     for i in range(5, len(charge_info) - 1):
         name, point = get_name_point(charge_info[i])
         user_point_dict["User"].append(name)
         user_point_dict["Point"].append(point)
     df = pd.DataFrame(user_point_dict)
+    for old_data in sorted(Path(USERWISE_DIR).glob("*.csv"))[:-n_latest]:
+        old_data.unlink()
     df.to_csv(f"{USERWISE_DIR}/{today}.csv", index=False)
 
 

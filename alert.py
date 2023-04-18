@@ -27,7 +27,7 @@ def update_balance_log(balance, today, n_latest=365):
     new_df.to_csv(BALANCE_LOG_PATH, index=False)
 
 
-def update_userwise_log(charge_info, today, n_latest=31):
+def update_userwise_log(charge_info, today, n_latest=93):
     user_point_dict = {"User": [], "Point": []}
     for i in range(5, len(charge_info) - 1):
         name, point = get_name_point(charge_info[i])
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     today = datetime.date.today()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--balance", type=int, default=1000)
+    parser.add_argument("--balance", type=int, default=5000)
     args = parser.parse_args()
 
     # exec charge2 and obtain stdout

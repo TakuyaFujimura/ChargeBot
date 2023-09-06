@@ -89,6 +89,7 @@ def main(args):
         message = f":owl:*Monthly Usage ({lastmonth} to {today})*\n"
         message += f"*Total usage: {total_usage:18,} p*\n"
         message += f"*Userwise usage:*\n"
+        message += "<https://docs.google.com/spreadsheets/d/1_wLEEGqrHAu2SMJfbTG5mmiXAe8P9kBwfxMQ2eWnYIo/edit?resourcekey#gid=32992617|Please report your usage.>\n"
         message += "```"  # code block
         for row in df_diff.itertuples():
             if row.Point == 0:

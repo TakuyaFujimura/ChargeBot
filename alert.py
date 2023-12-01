@@ -40,6 +40,10 @@ def update_userwise_log(charge_info, filepath):
     df.to_csv(filepath, index=False)
 
 
+def to_dict(df):
+    return dict(zip(df["User"], df["Point"]))
+
+
 def main(args):
     today = datetime.date.today()
 
@@ -77,29 +81,37 @@ def main(args):
         from dateutil.relativedelta import relativedelta
 
         ### Get info
-        lastmonth = today - relativedelta(months=1)
-        df_new = pd.read_csv(f"{USERWISE_DIR}/{today}{args.prefix}.csv")
-        df_old = pd.read_csv(f"{USERWISE_DIR}/{lastmonth}{args.prefix}.csv")
-        df_diff = df_new.copy()
-        df_diff["Point"] -= df_old["Point"]
         with open("data/userdict.json", "r") as f:
             userdict = json.load(f)
+        lastmonth = today - relativedelta(months=1)
+        dict_new = to_dict(pd.read_csv(f"{USERWISE_DIR}/{today}{args.prefix}.csv"))
+        dict_old = to_dict(pd.read_csv(f"{USERWISE_DIR}/{lastmonth}{args.prefix}.csv"))
+        total_usage = 0
+        userwise_message = "```"  # code block
+        for user_id, user_pt in dict_new.items():
+            if user_pt == 0:
+                continue
+            # point
+            if user_id in dict_old:
+                diff_pt = user_pt - dict_old[user_id]
+            else:
+                diff_pt = user_pt
+            total_usage += diff_pt
+            if diff_pt == 0:
+                continue
+            # user name
+            if user_id in userdict:
+                user = userdict[user_id]
+            else:
+                user = user_id
+            userwise_message += f"{user}: {diff_pt:,} pt\n"
+        userwise_message += "```"  # code block
         ### Announce
-        total_usage = df_diff["Point"].sum()
         message = f":owl:*Monthly Usage ({lastmonth} to {today})*\n"
         message += f"*Total usage: {total_usage:18,} p*\n"
         message += f"*Userwise usage:*\n"
         message += "<https://docs.google.com/spreadsheets/d/1_wLEEGqrHAu2SMJfbTG5mmiXAe8P9kBwfxMQ2eWnYIo/edit?resourcekey#gid=32992617|Please report your usage.>\n"
-        message += "```"  # code block
-        for row in df_diff.itertuples():
-            if row.Point == 0:
-                continue
-            if row.User in userdict:
-                user = userdict[row.User]
-            else:
-                user = row.User
-            message += f"{user}: {row.Point:,} pt\n"
-        message += "```"  # code block
+        message += userwise_message
         response = client.send(text=message)
 
 
